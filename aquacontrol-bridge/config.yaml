@@ -1,0 +1,31 @@
+name: AquaControl Bridge
+version: "1.0.0"
+slug: aquacontrol_bridge
+description: AquaControl Bridge for aquarium monitoring
+startup: services
+boot: auto
+
+arch:
+  - aarch64
+  - amd64
+
+options:
+  aquacontrol_url: ""
+  bridge_token: ""
+  bridge_id: "homeassistant-green"
+  poll_interval_ms: 30000
+  request_timeout_ms: 5000
+  devices: []
+
+schema:
+  aquacontrol_url: str
+  bridge_token: str
+  bridge_id: str
+  poll_interval_ms: int
+  request_timeout_ms: int
+  request_timeout_ms: int
+  devices:
+    - id: str?
+      name: str?
+      ip: str
+      path: str?
