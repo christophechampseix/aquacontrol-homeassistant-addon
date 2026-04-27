@@ -1,5 +1,5 @@
 name: AquaControl Bridge
-version: "1.3.3"
+version: "1.3.4"
 slug: aquacontrol_bridge
 description: AquaControl Bridge API mode
 startup: services
