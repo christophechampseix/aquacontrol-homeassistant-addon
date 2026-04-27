@@ -2,7 +2,7 @@ export function createApiClient({ baseUrl, bridgeId, bridgeToken, timeoutMs = 10
   const root = String(baseUrl || '').replace(/\/$/, '');
   const apiBase = root.endsWith('/api') ? root : `${root}/api`;
 
-  async function request(path, { method = 'GET', body } = {}) {
+  async function request(path, { method = 'POST', body } = {}) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -37,7 +37,7 @@ export function createApiClient({ baseUrl, bridgeId, bridgeToken, timeoutMs = 10
     },
 
     async commands() {
-      const data = await request(`/commands?bridge_id=${encodeURIComponent(bridgeId)}`, { method: 'GET' });
+      const data = await request('/commands', { method: 'POST', body: { bridge_id: bridgeId } });
       if (Array.isArray(data)) return data;
       if (Array.isArray(data?.commands)) return data.commands;
       return [];
