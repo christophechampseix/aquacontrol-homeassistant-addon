@@ -1,7 +1,7 @@
 name: AquaControl Bridge
-version: "1.1.0"
+version: "1.2.0"
 slug: aquacontrol_bridge
-description: AquaControl Bridge for aquarium monitoring (Supabase agent)
+description: AquaControl Bridge API mode
 startup: services
 boot: auto
 host_network: true
@@ -12,12 +12,10 @@ arch:
 
 options:
   aquacontrol_url: ""
-  supabase_key: ""
   bridge_token: ""
   bridge_id: "homeassistant-green"
 
 schema:
   aquacontrol_url: str
-  supabase_key: str
   bridge_token: str
   bridge_id: str
