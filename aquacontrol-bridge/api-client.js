@@ -2,6 +2,16 @@ export function createApiClient({ baseUrl, bridgeId, bridgeToken, timeoutMs = 10
   const root = String(baseUrl || '').replace(/\/$/, '');
   const apiBase = root.endsWith('/bridge-api') ? root : `${root}/bridge-api`;
 
+  function toErrorMessage(data, status) {
+    if (typeof data?.error === 'string') return data.error;
+    if (typeof data?.message === 'string') return data.message;
+    try {
+      return JSON.stringify(data ?? { status });
+    } catch {
+      return `API HTTP ${status}`;
+    }
+  }
+
   async function request(path, { method = 'POST', body } = {}) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -19,10 +29,15 @@ export function createApiClient({ baseUrl, bridgeId, bridgeToken, timeoutMs = 10
       });
 
       const text = await response.text();
-      const data = text ? JSON.parse(text) : null;
+      let data = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        data = text || null;
+      }
 
       if (!response.ok) {
-        throw new Error(data?.error || data?.message || `API HTTP ${response.status}`);
+        throw new Error(toErrorMessage(data, response.status));
       }
 
       return data;
