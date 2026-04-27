@@ -8,6 +8,7 @@ const DEFAULT_API_URL = 'https://aquacontrol.champseix.be/api';
 const POLL_INTERVAL_MS = 1500;
 const HEARTBEAT_INTERVAL_MS = 15000;
 const DEVICE_TIMEOUT_MS = 8000;
+const ADDON_VERSION = '1.3.7';
 
 async function readConfig() {
   try {
@@ -31,6 +32,11 @@ const api = createApiClient({ baseUrl: AQUACONTROL_URL, bridgeId: BRIDGE_ID, bri
 
 function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 function auth(u, p) { return Buffer.from(`${u}:${p}`).toString('base64'); }
+function errorText(err) {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  try { return JSON.stringify(err); } catch { return String(err); }
+}
 
 function isAllowedHost(host) {
   const value = String(host || '').toLowerCase();
@@ -61,7 +67,7 @@ async function deviceFetch({ host, path, method = 'GET', username = 'api', passw
 
 async function report(commandId, patch) {
   try { await api.result(commandId, patch); }
-  catch (err) { console.error('[bridge] result update error:', err.message); }
+  catch (err) { console.error('[bridge] result update error:', errorText(err)); }
 }
 
 async function handleRequest(command) {
@@ -69,7 +75,7 @@ async function handleRequest(command) {
     const data = await deviceFetch(command.payload || {});
     await report(command.id, { status: 'done', result: data });
   } catch (err) {
-    await report(command.id, { status: 'error', error: err.message });
+    await report(command.id, { status: 'error', error: errorText(err) });
   }
 }
 
@@ -78,13 +84,13 @@ async function handleDiscover(command) {
     const data = await deviceFetch({ host: 'eheimdigital.local', path: '/api/userdata', username: command.payload?.username || 'api', password: command.payload?.password || 'admin' });
     await report(command.id, { status: 'done', result: { devices: [{ ...data, ip: 'eheimdigital.local', isOnline: true }] } });
   } catch (err) {
-    await report(command.id, { status: 'error', error: err.message });
+    await report(command.id, { status: 'error', error: errorText(err) });
   }
 }
 
 async function heartbeat() {
-  try { await api.heartbeat({ bridge_id: BRIDGE_ID, source: 'home-assistant-addon', hostname: os.hostname(), version: '1.2.0', timestamp: new Date().toISOString() }); }
-  catch (err) { console.error('[bridge] heartbeat error:', err.message); }
+  try { await api.heartbeat({ bridge_id: BRIDGE_ID, source: 'home-assistant-addon', hostname: os.hostname(), version: ADDON_VERSION, timestamp: new Date().toISOString() }); }
+  catch (err) { console.error('[bridge] heartbeat error:', errorText(err)); }
 }
 
 async function poll() {
@@ -97,12 +103,13 @@ async function poll() {
       else void handleRequest(command);
     }
   } catch (err) {
-    console.error('[bridge] poll error:', err.message);
+    console.error('[bridge] poll error:', errorText(err));
   }
 }
 
 console.log(`[bridge] AquaControl HA Bridge gestart. ID=${BRIDGE_ID}`);
 console.log(`[bridge] API: ${AQUACONTROL_URL}`);
+console.log(`[bridge] Versie: ${ADDON_VERSION}`);
 let lastHeartbeat = 0;
 while (true) {
   await poll();
