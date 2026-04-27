@@ -1,12 +1,13 @@
 export function createApiClient({ baseUrl, bridgeId, bridgeToken, timeoutMs = 10000 }) {
-  const apiBase = String(baseUrl || '').replace(/\/$/, '');
+  const root = String(baseUrl || '').replace(/\/$/, '');
+  const apiBase = root.endsWith('/bridge-api') ? root : `${root}/bridge-api`;
 
   async function request(path, { method = 'GET', body } = {}) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-      const response = await fetch(`${apiBase}/bridge-api${path}`, {
+      const response = await fetch(`${apiBase}${path}`, {
         method,
         headers: {
           'Content-Type': 'application/json',
